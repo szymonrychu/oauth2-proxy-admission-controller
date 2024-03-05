@@ -1,0 +1,120 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'hotfix/**'
+      - 'dependabot/**'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  GIT_SHA: ${{ github.sha }}
+  CONTAINER_NAME: oauth2-proxy-admission-controller
+  CHART_NAME: oauth2-proxy-admission-controller
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Login to GHCR
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+    
+      - name: Parse versions in commit and setup debs for branch
+        if: github.ref_type == 'branch'
+        id: prep_branch
+        run: |
+          export LATEST_REPO_TAG=$(git tag -l --sort=-v:refname "[0-9]*" | head -n1)
+          if [ -z "${LATEST_REPO_TAG}" ]; then
+            export LATEST_REPO_TAG="0.0.1"
+          fi
+          export SHORT_SHA=$(echo ${GIT_SHA:0:7})
+
+          export APP_VERSION=${LATEST_REPO_TAG}-${SHORT_SHA}
+          export CHART_VERSION=${LATEST_REPO_TAG}-$(git show -s --format=%ct HEAD)-${SHORT_SHA}
+          export CONTAINER_VERSION=${GIT_SHA:0:7}
+
+          echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
+          echo "chart_version=${CHART_VERSION}" >> $GITHUB_OUTPUT
+          echo "container_version=${CONTAINER_VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "latest_repo_tag=${LATEST_REPO_TAG}" >> $GITHUB_OUTPUT
+
+          yq -i ".version = \"${CHART_VERSION}\"" chart/${CHART_NAME}/Chart.yaml
+          yq -i ".appVersion = \"${APP_VERSION}\"" chart/${CHART_NAME}/Chart.yaml
+
+          helm dep update chart/${CHART_NAME}
+
+    
+      - name: Parse versions in commit and setup debs for tag
+        if: github.ref_type == 'tag'
+        id: prep_tag
+        run: |
+          export LATEST_REPO_TAG=$(git tag -l --sort=-v:refname "[0-9]*" | head -n1)
+          if [ -z "${LATEST_REPO_TAG}" ]; then
+            export LATEST_REPO_TAG="0.0.1"
+          fi
+          export SHORT_SHA=$(echo ${GIT_SHA:0:7})
+
+          export APP_VERSION=${LATEST_REPO_TAG}
+          export CHART_VERSION=${LATEST_REPO_TAG}
+          export CONTAINER_VERSION=${LATEST_REPO_TAG}
+
+          echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
+          echo "chart_version=${CHART_VERSION}" >> $GITHUB_OUTPUT
+          echo "container_version=${CONTAINER_VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "latest_repo_tag=${LATEST_REPO_TAG}" >> $GITHUB_OUTPUT
+
+          yq -i ".version = \"${CHART_VERSION}\"" chart/${CHART_NAME}/Chart.yaml
+          yq -i ".appVersion = \"${APP_VERSION}\"" chart/${CHART_NAME}/Chart.yaml
+
+          helm dep update chart/${CHART_NAME}
+            
+      - name: Build new container for branch
+        if: github.ref_type == 'branch'
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep_branch.outputs.container_version }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep_branch.outputs.short_sha }}
+
+      - name: Tag existing container for release
+        if: github.ref_type == 'tag'
+        run: |
+          set -e
+
+          docker pull ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${GIT_SHA:0:7}
+          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${GIT_SHA:0:7} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep_branch.outputs.container_version }}
+          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep_branch.outputs.container_version }}
+
+          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${GIT_SHA:0:7} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
+          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 # v3
+        with:
+          version: v3.10.0
+
+      - name: Run chart-releaser for charts
+        uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0
+        with:
+          charts_dir: chart
+          skip_existing: true
+        env:
+          CR_TOKEN: "${{ secrets.SZYMONRYCHU_TOKEN }}"
