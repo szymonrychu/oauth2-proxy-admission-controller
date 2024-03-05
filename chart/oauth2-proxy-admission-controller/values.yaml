@@ -1,0 +1,125 @@
+# Default values for oauth2-proxy-admission-controller.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+mutatingWebhookAnnotations: {}
+mutatingWebhookExemptNamespacesLabels: {}
+mutatingWebhookFailurePolicy: Ignore
+mutatingWebhookObjectSelector: {}
+mutatingWebhookReinvocationPolicy: Never
+mutatingWebhookCustomRules: {}
+mutatingWebhookTimeoutSeconds: 1
+
+admissionWebhooks:
+  servicePort: 443
+  failurePolicy: Fail
+  secretName: ""
+
+  ## Defines the sidecar injection logic in Pods.
+  ## - Ignore, the injection is fail-open. The pod will be created, but the sidecar won't be injected.
+  ## - Fail, the injection is fail-close. If the webhook pod is not ready, pods cannot be created.
+  pods:
+    failurePolicy: Ignore
+
+  ## Adds a prefix to the mutating webook name.
+  ## This can be used to order this mutating webhook with all your cluster's mutating webhooks.
+  namePrefix: ""
+
+  ## Customize webhook timeout duration
+  timeoutSeconds: 10
+
+  ## Provide selectors for your objects
+  namespaceSelector: {}
+  objectSelector: {}
+
+  ## https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-operator/README.md#tls-certificate-requirement
+  ## TLS Certificate Option 1: Use certManager to generate self-signed certificate.
+  ## certManager must be enabled. If enabled, always takes precendence over options 2 and 3.
+  certManager:
+    ## Provide the issuer kind and name to do the cert auth job.
+    ## By default, OpenTelemetry Operator will use self-signer issuer.
+    issuerRef: {}
+      # kind:
+      # name:
+    ## Annotations for the cert and issuer if cert-manager is enabled.
+    certificateAnnotations: {}
+    issuerAnnotations: {}
+
+  ## TLS Certificate Option 2: Use Helm to automatically generate self-signed certificate.
+  ## certManager must be disabled and autoGenerateCert must be enabled.
+  ## If true and certManager.enabled is false, Helm will automatically create a self-signd cert and secret for you.
+  autoGenerateCert:
+    enabled: true
+    # If set to true, new webhook key/certificate is generated on helm upgrade.
+    recreate: true
+
+  ## TLS Certificate Option 3: Use your own self-signed certificate.
+  ## certManager and autoGenerateCert must be disabled and cert_file, key_file, and ca_file must be set.
+  ## Path to your own PEM-encoded certificate.
+  cert_file: ""
+  ## Path to your own PEM-encoded private key.
+  key_file: ""
+  ## Path to the CA cert.
+  ca_file: ""
+
+  ## Secret annotations
+  secretAnnotations: {}
+  ## Secret labels
+  secretLabels: {}
+
+
+replicaCount: 1
+
+image:
+  repository: szymonrychu/oauth2-proxy-admission-controller
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

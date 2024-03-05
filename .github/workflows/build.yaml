@@ -1,0 +1,113 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'hotfix/**'
+      - 'dependabot/**'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  GIT_SHA: ${{ github.sha }}
+  CONTAINER_NAME: oauth2-proxy-admission-controller
+  CHART_NAME: oauth2-proxy-admission-controller
+  BOT_USER_NAME: szymonrichert.pl bot
+  BOT_USER_EMAIL: bot@szymonrichert.pl
+  CHARTS_REPO_URL: selfhosted-kubernetes-charts
+  CHARTS_REPO_OWNER: szymonrychu
+  CHARTS_REPO_KEY: ${{ secrets.CHARTS_REPO_KEY }}
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "${BOT_USER_NAME}"
+          git config --global user.email "${BOT_USER_EMAIL}"
+
+      - name: Login to GHCR
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: szymonrychu
+          password: ${{ secrets.GHCR_TOKEN }}
+
+    
+      - name: Parse versions in commit and setup debs for tag
+        id: prep
+        run: |
+          export LATEST_REPO_TAG=$(git tag -l --sort=-v:refname "[0-9]*" | head -n1)
+          if [ -z "${LATEST_REPO_TAG}" ]; then
+            export LATEST_REPO_TAG="0.0.1"
+          fi
+          export SHORT_SHA=$(echo ${GIT_SHA:0:7})
+
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+              export APP_VERSION=${LATEST_REPO_TAG}
+              export CHART_VERSION=${LATEST_REPO_TAG}
+              export CONTAINER_VERSION=${LATEST_REPO_TAG}
+          else
+              export APP_VERSION=${LATEST_REPO_TAG}-${SHORT_SHA}
+              export CHART_VERSION=${LATEST_REPO_TAG}-$(git show -s --format=%ct HEAD)-${SHORT_SHA}
+              export CONTAINER_VERSION=${GIT_SHA:0:7}
+          fi
+
+          echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
+          echo "chart_version=${CHART_VERSION}" >> $GITHUB_OUTPUT
+          echo "container_version=${CONTAINER_VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "latest_repo_tag=${LATEST_REPO_TAG}" >> $GITHUB_OUTPUT
+
+            
+      - name: Build new container for branch
+        if: github.ref_type == 'branch'
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep.outputs.container_version }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep.outputs.short_sha }}
+
+      - name: Tag existing container for release
+        if: github.ref_type == 'tag'
+        run: |
+          set -e
+          docker pull ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }}
+          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.container_version }}
+          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.container_version }}
+
+          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
+          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
+
+      - name: Package and upload charts
+        run: |
+          set -ex
+
+          mkdir ~/.ssh
+          echo "${CHARTS_REPO_KEY}" | base64 --decode > ~/.ssh/id_rsa
+          chmod 0600 ~/.ssh/id_rsa
+
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          docker run --rm \
+            -v $(pwd):/app \
+            -v ${HOME}/.ssh:/root/.ssh \
+            -v ${HOME}/.gitconfig:/root/.gitconfig \
+            ghcr.io/szymonrychu/chart-utils:latest \
+              -c "${CHART_NAME}" \
+              -o "${CHARTS_REPO_OWNER}" \
+              -r "${CHARTS_REPO_URL}" \
+              -v "${{ steps.prep.outputs.chart_version }}" \
+              -a "${{ steps.prep.outputs.container_version }}"

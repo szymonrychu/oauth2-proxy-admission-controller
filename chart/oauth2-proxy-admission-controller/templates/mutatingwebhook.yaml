@@ -1,0 +1,42 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: {{ printf "%s/%s-serving-cert" .Release.Namespace (include "oauth2-proxy-admission-controller.fullname" .) }}
+  labels:
+    {{- include "oauth2-proxy-admission-controller.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook
+  name: {{ template "oauth2-proxy-admission-controller.MutatingWebhookName" . }}-mutation
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-webhook
+        namespace: {{ .Release.Namespace }}
+        path: /api
+        port: {{ .Values.admissionWebhooks.servicePort }}
+    failurePolicy: {{ .Values.admissionWebhooks.failurePolicy }}
+    name: oauth2proxy.injector.io
+    {{- if .Values.admissionWebhooks.namespaceSelector }}
+    namespaceSelector:
+    {{- toYaml .Values.admissionWebhooks.namespaceSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.admissionWebhooks.objectSelector }}
+    objectSelector:
+    {{- toYaml .Values.admissionWebhooks.objectSelector | nindent 6 }}
+    {{- end }}
+    rules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - pods
+        scope: Namespaced
+    sideEffects: None
+    timeoutSeconds: {{ .Values.admissionWebhooks.timeoutSeconds }}
