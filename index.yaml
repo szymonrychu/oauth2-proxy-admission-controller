@@ -12,6 +12,16 @@ entries:
     - https://github.com/szymonrychu/oauth2-proxy-admission-controller/releases/download/oauth2-proxy-admission-controller-0.0.1/oauth2-proxy-admission-controller-0.0.1.tgz
     version: 0.0.1
   - apiVersion: v2
+    appVersion: 0.0.1-2effa24
+    created: "2024-03-05T14:30:15.617120458Z"
+    description: A Helm chart for Kubernetes
+    digest: e29b0b2334ef76378705f4555d621d862c50e11553ce247d90c33ce80c8b015e
+    name: oauth2-proxy-admission-controller
+    type: application
+    urls:
+    - https://github.com/szymonrychu/oauth2-proxy-admission-controller/releases/download/oauth2-proxy-admission-controller-0.0.1-1709648961-2effa24/oauth2-proxy-admission-controller-0.0.1-1709648961-2effa24.tgz
+    version: 0.0.1-1709648961-2effa24
+  - apiVersion: v2
     appVersion: 0.0.1-f7e3500
     created: "2024-03-05T14:08:05.82452587Z"
     description: A Helm chart for Kubernetes
@@ -31,4 +41,4 @@ entries:
     urls:
     - https://github.com/szymonrychu/oauth2-proxy-admission-controller/releases/download/oauth2-proxy-admission-controller-0.0.1-1709647148-fce601c/oauth2-proxy-admission-controller-0.0.1-1709647148-fce601c.tgz
     version: 0.0.1-1709647148-fce601c
-generated: "2024-03-05T14:08:18.879135875Z"
+generated: "2024-03-05T14:30:15.617151466Z"
