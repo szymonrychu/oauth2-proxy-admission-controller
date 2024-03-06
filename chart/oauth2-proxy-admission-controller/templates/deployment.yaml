@@ -35,6 +35,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - "--bind=0.0.0.0:443"
+            - "--log-level=debug"
             - "--certfile=/certs/tls.crt"
             - "--keyfile=/certs/tls.key"
             - "app:app"
@@ -43,17 +44,17 @@ spec:
               mountPath: /certs
               name: webhook-certs
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            - name: webhook-server
+              containerPort: 443
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /healthz/live
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /healthz/ready
-              port: http
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz/live
+          #     port: webhook-server
+          # readinessProbe:
+          #   httpGet:
+          #     path: /healthz/ready
+          #     port: webhook-server
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

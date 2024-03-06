@@ -3,11 +3,13 @@ import copy
 import http
 import json
 import random
+import logging
 
 import jsonpatch
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
 
 
 @app.route("/validate", methods=["POST"])
@@ -29,37 +31,34 @@ def validate():
         }
     )
 
-
 @app.route("/mutate", methods=["POST"])
 def mutate():
-    spec = request.json["request"]["object"]
-    modified_spec = copy.deepcopy(spec)
-
-    try:
-        modified_spec["metadata"]["labels"]["example.com/new-label"] = str(
-            random.randint(1, 1000)
-        )
-    except KeyError:
-        pass
-    patch = jsonpatch.JsonPatch.from_diff(spec, modified_spec)
-    return jsonify(
-        {
-            "response": {
-                "allowed": True,
-                "uid": request.json["request"]["uid"],
-                "patch": base64.b64encode(str(patch).encode()).decode(),
-                "patchtype": "JSONPatch",
-            }
+    request_info = request.get_json()
+    uid = request_info["request"].get("uid")
+    api_version = request_info.get("apiVersion")
+    kind = request_info.get("kind")
+    response = {
+        "kind": kind,
+        "apiVersion": api_version,
+        "response": {
+            "uid": uid,
+            "allowed": True,
+            "status": {
+                "message": "TEST message"
+            },
+            "patchType": "JSONPatch",
+            "patch": base64.b64encode(jsonpatch.JsonPatch([{"op": "add", "path": "/metadata/labels/allow", "value": "yes"}]).to_string().encode("utf-8")).decode("utf-8")
         }
-    )
+    }
+    return jsonify(response)
 
 
 @app.route("/healthz/live", methods=["GET"])
-def health():
+def liveness():
     return ("", http.HTTPStatus.NO_CONTENT)
 
 @app.route("/healthz/ready", methods=["GET"])
-def health():
+def readiness():
     return ("", http.HTTPStatus.NO_CONTENT)
 
 

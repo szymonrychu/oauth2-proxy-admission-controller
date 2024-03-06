@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "oauth2-proxy-admission-controller.labels" . | nindent 4 }}
     app.kubernetes.io/component: webhook
-  name: {{ template "oauth2-proxy-admission-controller.MutatingWebhookName" . }}-mutation
+  name: oauth2-proxy-admission
 webhooks:
   - admissionReviewVersions:
       - v1
@@ -15,7 +15,7 @@ webhooks:
       service:
         name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-webhook
         namespace: {{ .Release.Namespace }}
-        path: /api
+        path: /mutate
         port: {{ .Values.admissionWebhooks.servicePort }}
     failurePolicy: {{ .Values.admissionWebhooks.failurePolicy }}
     name: oauth2proxy.injector.io

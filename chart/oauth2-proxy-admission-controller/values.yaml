@@ -71,7 +71,7 @@ admissionWebhooks:
 replicaCount: 1
 
 image:
-  repository: szymonrychu/oauth2-proxy-admission-controller
+  repository: ghcr.io/szymonrychu/oauth2-proxy-admission-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

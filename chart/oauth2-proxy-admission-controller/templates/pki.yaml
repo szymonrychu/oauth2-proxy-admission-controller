@@ -54,7 +54,6 @@ metadata:
 spec:
   ca:
     secretName: {{ default (printf "%s-controller-manager-service-cert" (include "oauth2-proxy-admission-controller.fullname" .)) .Values.admissionWebhooks.secretName }}
-{{- end }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
