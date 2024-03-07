@@ -1,21 +1,12 @@
-FROM python:3.7-alpine3.8 AS parent
+FROM python:3.12.2-slim-bookworm
+
+COPY requirements.txt /
+
+RUN pip3 install -r /requirements.txt
+
 WORKDIR /app
-RUN pip3 install pipenv
-COPY Pipfile /app/
-COPY Pipfile.lock /app/
 
-FROM parent AS base
-RUN pipenv install --deploy --system
-
-FROM parent AS dev-base
-RUN pipenv install --deploy --system --dev
-
-FROM dev-base AS Test
 COPY src /app
-RUN pipenv check --system
-RUN pytest
 
-FROM base
-COPY src /app
-ENTRYPOINT ["gunicorn"]
+ENTRYPOINT ["uvicorn"]
 CMD ["app:app"]

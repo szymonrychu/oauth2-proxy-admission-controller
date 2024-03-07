@@ -34,10 +34,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - "--bind=0.0.0.0:443"
-            - "--log-level=debug"
-            - "--certfile=/certs/tls.crt"
-            - "--keyfile=/certs/tls.key"
+            - "--host=0.0.0.0"
+            - "--port=443"
+            - "--ssl-certfile=/certs/tls.crt"
+            - "--ssl-keyfile=/certs/tls.key"
             - "app:app"
           volumeMounts:
             - readOnly: true
