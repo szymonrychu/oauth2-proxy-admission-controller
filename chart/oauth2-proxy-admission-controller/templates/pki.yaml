@@ -1,43 +1,3 @@
-{{- if not .Values.admissionWebhooks.certManager.issuerRef }}
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  {{- if .Values.admissionWebhooks.certManager.issuerAnnotations }}
-  annotations:
-  {{- toYaml .Values.admissionWebhooks.certManager.issuerAnnotations | nindent 4 }}
-  {{- end }}
-  labels:
-    {{- include "oauth2-proxy-admission-controller.labels" . | nindent 4 }}
-  name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-selfsigned-issuer
-  namespace: {{ .Release.Namespace | quote }}
-spec:
-  selfSigned: {}
-{{- end }}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  {{- if .Values.admissionWebhooks.certManager.certificateAnnotations }}
-  annotations:
-  {{- toYaml .Values.admissionWebhooks.certManager.certificateAnnotations | nindent 4 }}
-  {{- end }}
-  labels:
-    {{- include "oauth2-proxy-admission-controller.labels" . | nindent 4 }}
-  name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-ca
-  namespace: {{ .Release.Namespace | quote }}
-spec:
-  secretName: {{ default (printf "%s-controller-manager-service-cert" (include "oauth2-proxy-admission-controller.fullname" .)) .Values.admissionWebhooks.secretName }}
-  duration: 43800h # 5y
-  issuerRef:
-    {{- if .Values.admissionWebhooks.certManager.issuerRef }}
-    {{- toYaml .Values.admissionWebhooks.certManager.issuerRef | nindent 4 }}
-    {{- else }}
-    kind: Issuer
-    name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-selfsigned-issuer
-    {{- end }}
-  commonName: "ca.webhook.oauth2-injector"
-  isCA: true
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
@@ -52,8 +12,7 @@ metadata:
   name: {{ template "oauth2-proxy-admission-controller.fullname" . }}-serving-issuer
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  ca:
-    secretName: {{ default (printf "%s-controller-manager-service-cert" (include "oauth2-proxy-admission-controller.fullname" .)) .Values.admissionWebhooks.secretName }}
+  selfSigned: {}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

@@ -10,8 +10,6 @@ mutatingWebhookReinvocationPolicy: Never
 mutatingWebhookCustomRules: {}
 mutatingWebhookTimeoutSeconds: 1
 
-# Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'. Default: 'info'.
-logLevel: info
 
 admissionWebhooks:
   servicePort: 443
