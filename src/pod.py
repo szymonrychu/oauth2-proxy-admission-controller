@@ -31,7 +31,7 @@ def patch_pod(pod:kd.models.V1Pod, config:Config) -> kd.models.V1Pod:
     if not port:
         return pod
 
-    container.ports.remove(port)
+    port.name = f"{port.name}-unsecured"
 
     new_container = kd.models.V1Container()
     new_container.name = config.proxy_container_name
