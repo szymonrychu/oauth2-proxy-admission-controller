@@ -19,8 +19,6 @@ app = FastAPI()
 @app.post("/mutate", response_model=V1AdmissionReviewResponse, response_model_exclude_none=True, response_model_by_alias=True, response_model_exclude_unset=True)
 async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
     response = get_admission_resp_from_req(request)
-    response.response.patch_type = 'JSONPatch'
-    response.response.patch = 'W10=' # base64.b64encode('[]'.encode("ascii"))
 
     pod = request.request.object
     configuration_secret_name = pod.metadata.annotations.get('oauth2-proxy-admission/configuration-secret-name', None)
@@ -34,6 +32,7 @@ async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
     config.patch_port_name = pod.metadata.annotations.get('oauth2-proxy-admission/port-name', None)
 
     patched_pod = patch_pod(pod, config)
+    response.response.patch_type = 'JSONPatch'
     patch = jsonpatch.make_patch(pod.dict(skip_defaults=True), patched_pod.dict(skip_defaults=True)).to_string()
     response.response.patch = base64.b64encode(patch.encode("ascii"))
     return response

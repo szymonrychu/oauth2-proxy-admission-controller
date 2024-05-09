@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 proxy:
-  containerName: proxy
+  containerName: oauth2-proxy-proxy
   httpPort: 4180
   emailDomains: "*"
   # allowedGroups:

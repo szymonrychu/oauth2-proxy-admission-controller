@@ -4,3 +4,4 @@ uvicorn==0.22.0
 jsonpatch==1.33
 more-itertools==10.2.0
 kubernetes-dynamic==0.1.2
+kubernetes==29.0.0

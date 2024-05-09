@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, create_model
 class Config(BaseModel):
     proxy_container_name: str = Field(alias='proxy-container-name', default='proxy')
     proxy_provider: str = Field(alias='proxy-provider', default='keycloak-oidc')
-    proxy_http_port: str = Field(alias='proxy-http-port', default=4180)
+    proxy_http_port: int = Field(alias='proxy-http-port', default=4180)
     proxy_email_domains: str = Field(alias='proxy-email-domains', default='*')
     proxy_allowed_groups: str = Field(alias='proxy-allowed-groups')
     proxy_client_id: str = Field(alias='proxy-client-id')
@@ -76,6 +76,6 @@ class V1AdmissionReviewResponse(kd.ResourceItem):
 
 def get_admission_resp_from_req(req:V1AdmissionReviewRequest, allowed:bool= True, patch:str = None, patch_type:str = None) -> V1AdmissionReviewResponse:
     response = V1AdmissionReviewResponseBody(uid=req.request.uid, allowed=allowed, patch=patch, patch_type=patch_type)
-    resp = V1AdmissionReviewResponse(response = response)
+    resp = V1AdmissionReviewResponse(response = response, kind = req.kind, api_version = req.api_version)
     return resp
 
