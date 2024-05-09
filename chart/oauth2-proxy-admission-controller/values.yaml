@@ -2,6 +2,27 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+proxy:
+  containerName: proxy
+  httpPort: 4180
+  emailDomains: "*"
+  # allowedGroups:
+  # clientId:
+  # clientSecret:
+  # redirectUrl:
+  # oidcIssuerUrl:
+  cookieName: proxy
+  # cookieDomain:
+  # cookieSecret:
+  requestsCpu: 100m
+  requestsMemory: 128Mi
+  limitsCpu: 200m
+  limitsMemory: 256Mi
+  image: quay.io/oauth2-proxy/oauth2-proxy
+  tag: v7.5.1
+  imagePullPolicy: IfNotPresent
+
+
 mutatingWebhookAnnotations: {}
 mutatingWebhookExemptNamespacesLabels: {}
 mutatingWebhookFailurePolicy: Ignore
@@ -32,6 +53,11 @@ admissionWebhooks:
   ## Provide selectors for your objects
   namespaceSelector: {}
   objectSelector: {}
+    # matchExpressions:
+    #   - key: app.kubernetes.io/component
+    #     operator: In
+    #     values:
+    #       - componentName
 
   ## https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-operator/README.md#tls-certificate-requirement
   ## TLS Certificate Option 1: Use certManager to generate self-signed certificate.

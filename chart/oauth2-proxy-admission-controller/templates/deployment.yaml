@@ -25,6 +25,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "oauth2-proxy-admission-controller.serviceAccountName" . }}
+      automountServiceAccountToken: true
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -33,13 +34,22 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAME 
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "oauth2-proxy-admission-controller.fullname" . }}
+                  key: default-secret-name
+            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAMESPACE 
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "oauth2-proxy-admission-controller.fullname" . }}
+                  key: default-secret-namespace
           args:
             - --host
             - "0.0.0.0"
             - --port
             - "443"
-            - --log-level
-            - debug
             - --ssl-certfile
             - /certs/tls.crt
             - --ssl-keyfile
@@ -53,14 +63,16 @@ spec:
             - name: webhook-server
               containerPort: 443
               protocol: TCP
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz/live
-          #     port: webhook-server
-          # readinessProbe:
-          #   httpGet:
-          #     path: /healthz/ready
-          #     port: webhook-server
+          livenessProbe:
+            tcpSocket:
+              path: /healthz/live
+              port: webhook-server
+              scheme: HTTPS
+          readinessProbe:
+            tcpSocket:
+              path: /healthz/ready
+              port: webhook-server
+              scheme: HTTPS
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
