@@ -25,7 +25,7 @@ class Config(BaseModel):
     proxy_resources_limits_cpu: str = Field(alias='proxy-resources-limits-cpu', default='200m')
     proxy_resources_limits_memory: str = Field(alias='proxy-resources-limits-memory', default='256Mi')
     proxy_container_image: str = Field(alias='proxy-container-image', default='quay.io/oauth2-proxy/oauth2-proxy')
-    proxy_container_tag: str = Field(alias='proxy-container-image', default='v7.5.1')
+    proxy_container_tag: str = Field(alias='proxy-container-tag', default='v7.5.1')
     proxy_container_image_pull_policy: str = Field(alias='proxy-container-image-pull-policy', default='IfNotPresent')
     patch_container_name: str = Field(default=None)
     patch_port_number: int = Field(default=None)

@@ -4,13 +4,17 @@ import os
 
 import jsonpatch
 
-from k8s import get_config
-from pod import patch_pod
+from k8s import (b64enc, find_pods_services, generate_proxy_container,
+                 get_config, get_container_port, get_pod_container,
+                 revert_services, update_services)
 
 logging.basicConfig(level=logging.DEBUG)
 
+from copy import deepcopy
+
 from fastapi import FastAPI, Request, Response
 
+from log import logger
 from models import (V1AdmissionReviewRequest, V1AdmissionReviewResponse,
                     get_admission_resp_from_req)
 
@@ -25,16 +29,41 @@ async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
     configuration_secret_namespace = pod.metadata.annotations.get('oauth2-proxy-admission/configuration-secret-namespace', None)
     config = get_config(configuration_secret_name, configuration_secret_namespace)
     if not config:
+        logger.info("Couldn't load config!")
+        revert_services(pod)
         return response
         
     config.patch_container_name = pod.metadata.annotations.get('oauth2-proxy-admission/container-name', None)
     config.patch_port_number = pod.metadata.annotations.get('oauth2-proxy-admission/port-number', None)
     config.patch_port_name = pod.metadata.annotations.get('oauth2-proxy-admission/port-name', None)
+    
+    container = get_pod_container(pod, config)
+    if not container:
+        logger.info("Couldn't load container!")
+        revert_services(pod)
+        return response
+    
+    port = get_container_port(container, config)
+    if not port:
+        logger.info("Couldn't load port!")
+        revert_services(pod)
+        return response
+    
+    service = find_pods_services(pod, port)
+    if not service:
+        logger.info("Couldn't load service!")
+        revert_services(pod)
+        return response
 
-    patched_pod = patch_pod(pod, config)
+    old_pod = deepcopy(pod)
+    pod.spec.containers.append(generate_proxy_container(port.containerPort, port.name, config))
+
+    update_services(service, port, pod)
+
+    port.name = f"{port.name}-insecure"
     response.response.patch_type = 'JSONPatch'
-    patch = jsonpatch.make_patch(pod.dict(skip_defaults=True), patched_pod.dict(skip_defaults=True)).to_string()
-    response.response.patch = base64.b64encode(patch.encode("ascii"))
+    patch = jsonpatch.make_patch(old_pod.dict(skip_defaults=True), pod.dict(skip_defaults=True)).to_string()
+    response.response.patch = b64enc(patch)    
     return response
 
 
