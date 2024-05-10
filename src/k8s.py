@@ -8,7 +8,6 @@ import jsonpatch
 import kubernetes_dynamic as kd
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
-from pydantic.error_wrappers import ValidationError
 
 from log import logger
 from models import Config
@@ -49,6 +48,7 @@ def get_config(secret_name:str = None, secret_namespace:str = None) -> Optional[
     raw_overrides = {}
     if secret_name:
         raw_overrides = _kd_client.secrets.get(secret_name, secret_namespace).data
+        
     
     for k, v in raw_overrides.items():
         raw_configuration[k] = v
@@ -57,10 +57,7 @@ def get_config(secret_name:str = None, secret_namespace:str = None) -> Optional[
     for k, v in raw_configuration.items():
         result[k] = base64.b64decode(v).decode('ascii')
 
-    try:
-        return Config.validate(result)
-    except ValidationError:
-        return None
+    return Config.validate(result)
 
 def get_pod_container(pod:kd.models.V1Pod, config:Config) -> kd.models.V1Container:
     container = None

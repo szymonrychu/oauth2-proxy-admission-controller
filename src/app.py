@@ -3,6 +3,8 @@ import logging
 import os
 
 import jsonpatch
+from pydantic import ValidationError
+from kubernetes.client.exceptions import ApiException
 
 from k8s import (b64enc, find_pods_services, generate_proxy_container,
                  get_config, get_container_port, get_pod_container,
@@ -27,11 +29,18 @@ async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
     pod = request.request.object
     configuration_secret_name = pod.metadata.annotations.get('oauth2-proxy-admission/configuration-secret-name', None)
     configuration_secret_namespace = pod.metadata.annotations.get('oauth2-proxy-admission/configuration-secret-namespace', None)
-    config = get_config(configuration_secret_name, configuration_secret_namespace)
-    if not config:
-        logger.info("Couldn't load config!")
+    config = None
+    try:
+        config = get_config(configuration_secret_name, configuration_secret_namespace)
+    except ApiException:
+        logger.info("Couldn't load config from k8s- configuration error, forbidding!")
+        response.response.allowed = False
+        return response
+    except ValidationError:
+        logger.info("Couldn't parse config!")
         revert_services(pod)
         return response
+    
         
     config.patch_container_name = pod.metadata.annotations.get('oauth2-proxy-admission/container-name', None)
     config.patch_port_number = pod.metadata.annotations.get('oauth2-proxy-admission/port-number', None)
@@ -63,18 +72,18 @@ async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
 
     if container.readinessProbe.httpGet.port and container.readinessProbe.httpGet.port == port.name:
         container.readinessProbe.httpGet.port = f"{port.name}-insecure"
-    elif container.readinessProbe.tcpSocket and container.readinessProbe.tcpSocket == port.name:
-        container.readinessProbe.tcpSocket = f"{port.name}-insecure"
+    elif container.readinessProbe.tcpSocket.port and container.readinessProbe.tcpSocket.port == port.name:
+        container.readinessProbe.tcpSocket.port = f"{port.name}-insecure"
 
     if container.livenessProbe.httpGet.port and container.livenessProbe.httpGet.port == port.name:
         container.livenessProbe.httpGet.port = f"{port.name}-insecure"
-    elif container.livenessProbe.tcpSocket and container.livenessProbe.tcpSocket == port.name:
-        container.livenessProbe.tcpSocket = f"{port.name}-insecure"
+    elif container.livenessProbe.tcpSocket.port and container.livenessProbe.tcpSocket.port == port.name:
+        container.livenessProbe.tcpSocket.port = f"{port.name}-insecure"
 
     if container.startupProbe.httpGet.port and container.startupProbe.httpGet.port == port.name:
         container.startupProbe.httpGet.port = f"{port.name}-insecure"
-    elif container.startupProbe.tcpSocket and container.startupProbe.tcpSocket == port.name:
-        container.startupProbe.tcpSocket = f"{port.name}-insecure"
+    elif container.startupProbe.tcpSocket.port and container.startupProbe.tcpSocket.port == port.name:
+        container.startupProbe.tcpSocket.port = f"{port.name}-insecure"
 
     port.name = f"{port.name}-insecure"
     response.response.patch_type = 'JSONPatch'
