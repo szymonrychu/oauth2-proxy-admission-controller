@@ -4,7 +4,7 @@
 
 proxy:
   containerName: oauth2-proxy-proxy
-  httpPort: 4180
+  httpPort: "4180"
   emailDomains: "*"
   # allowedGroups:
   # clientId:
