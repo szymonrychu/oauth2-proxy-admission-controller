@@ -60,6 +60,22 @@ async def mutate(request:V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
 
     update_services(service, port, pod)
 
+
+    if container.readinessProbe.httpGet.port and container.readinessProbe.httpGet.port == port.name:
+        container.readinessProbe.httpGet.port = f"{port.name}-insecure"
+    elif container.readinessProbe.tcpSocket and container.readinessProbe.tcpSocket == port.name:
+        container.readinessProbe.tcpSocket = f"{port.name}-insecure"
+
+    if container.livenessProbe.httpGet.port and container.livenessProbe.httpGet.port == port.name:
+        container.livenessProbe.httpGet.port = f"{port.name}-insecure"
+    elif container.livenessProbe.tcpSocket and container.livenessProbe.tcpSocket == port.name:
+        container.livenessProbe.tcpSocket = f"{port.name}-insecure"
+
+    if container.startupProbe.httpGet.port and container.startupProbe.httpGet.port == port.name:
+        container.startupProbe.httpGet.port = f"{port.name}-insecure"
+    elif container.startupProbe.tcpSocket and container.startupProbe.tcpSocket == port.name:
+        container.startupProbe.tcpSocket = f"{port.name}-insecure"
+
     port.name = f"{port.name}-insecure"
     response.response.patch_type = 'JSONPatch'
     patch = jsonpatch.make_patch(old_pod.dict(skip_defaults=True), pod.dict(skip_defaults=True)).to_string()
