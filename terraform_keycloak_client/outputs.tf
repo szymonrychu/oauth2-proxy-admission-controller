@@ -24,3 +24,8 @@ output "keycloak_group_name" {
   description = "keycloak group name"
   value       = keycloak_group.this.name
 }
+
+output "keycloak_group_id" {
+  description = "keycloak group id"
+  value       = keycloak_group.this.id
+}
