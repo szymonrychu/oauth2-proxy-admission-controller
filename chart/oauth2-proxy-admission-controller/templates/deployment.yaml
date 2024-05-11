@@ -35,12 +35,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAME 
+            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAME
               valueFrom:
                 secretKeyRef:
                   name: {{ include "oauth2-proxy-admission-controller.fullname" . }}
                   key: default-secret-name
-            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAMESPACE 
+            - name: OAUTH2_PROXY_ADMISSION_SECRET_NAMESPACE
               valueFrom:
                 secretKeyRef:
                   name: {{ include "oauth2-proxy-admission-controller.fullname" . }}

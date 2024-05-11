@@ -63,4 +63,3 @@ variable "kubernetes_secret_namespace" {
   type        = string
   nullable    = true
 }
-

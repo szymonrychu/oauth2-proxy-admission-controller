@@ -43,7 +43,7 @@ jobs:
           username: szymonrychu
           password: ${{ secrets.GHCR_TOKEN }}
 
-    
+
       - name: Parse versions in commit and setup debs for tag
         id: prep
         run: |
@@ -69,7 +69,7 @@ jobs:
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "latest_repo_tag=${LATEST_REPO_TAG}" >> $GITHUB_OUTPUT
 
-            
+
       - name: Build new container for branch
         if: github.ref_type == 'branch'
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5

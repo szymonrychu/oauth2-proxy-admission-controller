@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 set -euo pipefail
 
 readonly CHART_DIR="${1}"
