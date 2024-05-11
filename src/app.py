@@ -1,17 +1,14 @@
 import logging
 import jsonpatch
-from pydantic import ValidationError
-from kubernetes.client.exceptions import ApiException
-from k8s import (
-    b64enc,
-    find_pods_services,
-    generate_proxy_container,
-    get_config,
+from config import load_config
+from service_operations import revert_services, update_services
+from pod_operations import (
     get_container_port,
     get_pod_container,
-    revert_services,
-    update_services,
+    find_pods_services,
+    generate_proxy_container,
 )
+from utils import b64enc
 from copy import deepcopy
 from fastapi import FastAPI, Response
 from log import logger
@@ -35,35 +32,13 @@ app = FastAPI()
 )
 async def mutate(request: V1AdmissionReviewRequest) -> V1AdmissionReviewResponse:
     response = get_admission_resp_from_req(request)
-
     pod = request.request.object
-    configuration_secret_name = pod.metadata.annotations.get(
-        "oauth2-proxy-admission/configuration-secret-name", None
-    )
-    configuration_secret_namespace = pod.metadata.annotations.get(
-        "oauth2-proxy-admission/configuration-secret-namespace", None
-    )
-    config = None
-    try:
-        config = get_config(configuration_secret_name, configuration_secret_namespace)
-    except ApiException:
-        logger.info("Couldn't load config from k8s- configuration error, forbidding!")
-        response.response.allowed = False
-        return response
-    except ValidationError:
-        logger.info("Couldn't parse config!")
+
+    config = load_config(pod)
+
+    if not config:
         revert_services(pod)
         return response
-
-    config.patch_container_name = pod.metadata.annotations.get(
-        "oauth2-proxy-admission/container-name", None
-    )
-    config.patch_port_number = pod.metadata.annotations.get(
-        "oauth2-proxy-admission/port-number", None
-    )
-    config.patch_port_name = pod.metadata.annotations.get(
-        "oauth2-proxy-admission/port-name", None
-    )
 
     container = get_pod_container(pod, config)
     if not container:
@@ -87,8 +62,6 @@ async def mutate(request: V1AdmissionReviewRequest) -> V1AdmissionReviewResponse
     pod.spec.containers.append(
         generate_proxy_container(port.containerPort, port.name, config)
     )
-
-    update_services(service, port, pod)
 
     if (
         container.readinessProbe.httpGet.port
@@ -129,6 +102,8 @@ async def mutate(request: V1AdmissionReviewRequest) -> V1AdmissionReviewResponse
         old_pod.dict(skip_defaults=True), pod.dict(skip_defaults=True)
     ).to_string()
     response.response.patch = b64enc(patch)
+
+    update_services(service, port, pod)
     return response
 
 

@@ -2,6 +2,7 @@ from enum import Enum
 from uuid import UUID
 import kubernetes_dynamic as kd
 from pydantic import BaseModel, Field
+from typing import Self, List
 
 
 class Config(BaseModel):
@@ -9,14 +10,14 @@ class Config(BaseModel):
     proxy_provider: str = Field(alias="proxy-provider", default="keycloak-oidc")
     proxy_http_port: int = Field(alias="proxy-http-port", default=4180)
     proxy_email_domains: str = Field(alias="proxy-email-domains", default="*")
-    proxy_allowed_groups: str = Field(alias="proxy-allowed-groups")
-    proxy_client_id: str = Field(alias="proxy-client-id")
-    proxy_client_secret: str = Field(alias="proxy-client-secret")
-    proxy_redirect_url: str = Field(alias="proxy-redirect-url")
-    proxy_issuer_url: str = Field(alias="proxy-oidc-issuer-url")  # realm-url
-    proxy_cookie_name: str = Field(alias="proxy-cookie-name")
-    proxy_cookie_domain: str = Field(alias="proxy-cookie-domain")
-    proxy_cookie_secret: str = Field(alias="proxy-cookie-secret")
+    proxy_allowed_groups: str = Field(alias="proxy-allowed-groups", default=None)
+    proxy_client_id: str = Field(alias="proxy-client-id", default=None)
+    proxy_client_secret: str = Field(alias="proxy-client-secret", default=None)
+    proxy_redirect_url: str = Field(alias="proxy-redirect-url", default=None)
+    proxy_issuer_url: str = Field(alias="proxy-oidc-issuer-url", default=None)
+    proxy_cookie_name: str = Field(alias="proxy-cookie-name", default=None)
+    proxy_cookie_domain: str = Field(alias="proxy-cookie-domain", default=None)
+    proxy_cookie_secret: str = Field(alias="proxy-cookie-secret", default=None)
     proxy_resources_requests_cpu: str = Field(
         alias="proxy-resources-requests-cpu", default="100m"
     )
@@ -36,9 +37,50 @@ class Config(BaseModel):
     proxy_container_image_pull_policy: str = Field(
         alias="proxy-container-image-pull-policy", default="IfNotPresent"
     )
-    patch_container_name: str = Field(default=None)
-    patch_port_number: int = Field(default=None)
-    patch_port_name: str = Field(default=None)
+    patch_container_name: str = Field(alias="patch-container-name", default=None)
+    patch_port_number: int = Field(alias="patch-port-number", default=None)
+    patch_port_name: str = Field(alias="proxy-port-name", default=None)
+    secret_name: str = Field(alias="secret-name", default="")
+    secret_namespace: str = Field(alias="secret-name", default="")
+
+    def update(self, config: Self = None) -> Self:
+        _config = config or Config()
+        this_raw = self.dict(
+            skip_defaults=True, exclude_defaults=True, exclude_unset=True
+        )
+        update_raw = _config.dict(
+            skip_defaults=True, exclude_defaults=True, exclude_unset=True
+        )
+        this_raw.update(update_raw)
+        return Config.validate(this_raw)
+
+    @property
+    def missing_fields(self) -> List[str]:
+        result = []
+        for required_field in [
+            "proxy_container_name",
+            "proxy_provider",
+            "proxy_http_port",
+            "proxy_email_domains",
+            "proxy_allowed_groups",
+            "proxy_client_id",
+            "proxy_client_secret",
+            "proxy_redirect_url",
+            "proxy_issuer_url",
+            "proxy_cookie_name",
+            "proxy_cookie_domain",
+            "proxy_cookie_secret",
+            "proxy_container_tag",
+            "proxy_container_image_pull_policy",
+        ]:
+            v = dict(self)[required_field]
+            if not v:
+                result.append(required_field)
+        return result
+
+    @property
+    def all_required_fields_set(self) -> bool:
+        return len(self.missing_fields) < 1
 
 
 class WebhookRequestOperation(Enum):
