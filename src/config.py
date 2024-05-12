@@ -3,7 +3,7 @@ from typing import Optional
 
 from log import logger
 from models import Config
-from kubernetes_client import client
+from kubernetes_client import get_client
 from kubernetes.client.exceptions import ApiException
 from utils import b64dec
 import kubernetes_dynamic as kd
@@ -23,7 +23,7 @@ def load_from_kubernetes(
     secret_namespace: str = None,
     kubernetes_client: kd.client.K8sClient = None,
 ) -> Optional[Config]:
-    _client = kubernetes_client or client
+    _client = kubernetes_client or get_client()
     if not secret_name:
         return None
     try:

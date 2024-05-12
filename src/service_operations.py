@@ -3,7 +3,7 @@ from copy import deepcopy
 import kubernetes_dynamic as kd
 from kubernetes.client.exceptions import ApiException
 
-from kubernetes_client import client
+from kubernetes_client import get_client
 from utils import b64dec_json, b64enc_json
 
 SERVICE_ANNOTATION_TYPE_KEY = "oauth2-proxy-admission/type"
@@ -19,7 +19,7 @@ def update_services(
     pod: kd.models.V1Pod,
     kubernetes_client: kd.client.K8sClient = None,
 ):
-    _client = kubernetes_client or client
+    _client = kubernetes_client or get_client()
     insecure_service = deepcopy(service)
     insecure_service.metadata.uid = None
     insecure_service.metadata.creationTimestamp = None
@@ -52,7 +52,7 @@ def update_services(
 def revert_services(
     pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = None
 ):
-    _client = kubernetes_client or client
+    _client = kubernetes_client or get_client()
     services = _client.services.find(
         pattern=".*",
         namespace=pod.metadata.namespace,

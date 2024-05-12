@@ -2,7 +2,7 @@ from typing import List
 
 import kubernetes_dynamic as kd
 
-from kubernetes_client import client
+from kubernetes_client import get_client
 from models import Config
 
 
@@ -11,7 +11,7 @@ def find_pods_services(
     port: kd.models.V1ContainerPort,
     kubernetes_client: kd.client.K8sClient = None,
 ) -> List[kd.models.V1Service]:
-    _client = kubernetes_client or client
+    _client = kubernetes_client or get_client()
     labels = pod.metadata.labels
     labels_keys = list(labels.keys())
     labels_num = len(labels_keys)
