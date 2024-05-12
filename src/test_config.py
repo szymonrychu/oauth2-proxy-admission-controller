@@ -1,4 +1,5 @@
 import kubernetes_dynamic as kd
+from kubernetes.client.exceptions import ApiException
 
 from utils import b64enc
 from config import load_config, load_from_annotations, load_from_kubernetes
@@ -6,6 +7,8 @@ from config import load_config, load_from_annotations, load_from_kubernetes
 
 class MockSecrets:
     def get(self, secret_name: str, secret_namespace: str = None) -> kd.models.V1Secret:
+        if secret_name == "non_existent":
+            raise ApiException()
         secret = kd.models.V1Secret()
         secret.metadata.name = secret_name
         secret.metadata.namespace = secret_namespace or "default"
@@ -16,10 +19,11 @@ class MockSecrets:
         secret.data["proxy-allowed-groups"] = b64enc("test_secret")
         secret.data["proxy-client-id"] = b64enc("test_secret")
         secret.data["proxy-client-secret"] = b64enc("test_secret")
-        secret.data["proxy-redirect-url"] = b64enc("test_secret")
-        secret.data["proxy-oidc-issuer-url"] = b64enc("test_secret")
-        secret.data["proxy-cookie-name"] = b64enc("test_secret")
-        secret.data["proxy-cookie-domain"] = b64enc("test_secret")
+        if secret_name != "test_missing_fields":
+            secret.data["proxy-redirect-url"] = b64enc("test_secret")
+            secret.data["proxy-oidc-issuer-url"] = b64enc("test_secret")
+            secret.data["proxy-cookie-name"] = b64enc("test_secret")
+            secret.data["proxy-cookie-domain"] = b64enc("test_secret")
         secret.data["proxy-cookie-secret"] = b64enc("test_secret")
         secret.data["proxy-resources-requests-cpu"] = b64enc("test_secret")
         secret.data["proxy-resources-requests-memory"] = b64enc("test_secret")
@@ -39,6 +43,27 @@ class MockSecrets:
 class MockClient:
     def __init__(self):
         self.secrets = MockSecrets()
+
+
+def test_load_from_kubernetes_name_empty():
+    mock_client = MockClient()
+
+    config = load_from_kubernetes(None, None, mock_client)
+    assert config is None
+
+
+def test_load_from_kubernetes_secret_not_exists():
+    mock_client = MockClient()
+
+    config = load_from_kubernetes("non_existent", None, mock_client)
+    assert config is None
+
+
+def test_load_from_kubernetes_secret_missing_fields():
+    mock_client = MockClient()
+
+    config = load_from_kubernetes("test_missing_fields", "test", mock_client)
+    assert not config.all_required_fields_set
 
 
 def test_load_from_kubernetes():
@@ -71,6 +96,7 @@ def test_load_from_kubernetes():
     assert config.patch_port_name == "test_secret"
     assert config.secret_name == "test_secret"
     assert config.secret_namespace == "test_secret"
+    assert config.all_required_fields_set
 
 
 def test_load_from_annotations():
@@ -129,6 +155,7 @@ def test_load_from_annotations():
     assert config.patch_port_name == "test_pod"
     assert config.secret_name == "test_pod"
     assert config.secret_namespace == "test_pod"
+    assert config.all_required_fields_set
 
 
 def test_load_config():
@@ -188,3 +215,4 @@ def test_load_config():
     assert config.patch_port_name == "test_pod"
     assert config.secret_name == "test_pod"
     assert config.secret_namespace == "test_pod"
+    assert config.all_required_fields_set

@@ -76,7 +76,6 @@ def load_config(
         logger.warning("Configuration secret name not provided!")
 
     config = config.update(annotations_config)
-    print(config)
 
     if config.all_required_fields_set:
         return config
