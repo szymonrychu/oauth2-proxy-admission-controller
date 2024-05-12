@@ -1,0 +1,78 @@
+
+[tool.poetry]
+name = "oauth2-proxy-admission-controller"
+version = "0.1.0"
+description = ""
+authors = ["Szymon Richert <szymon.rychu@gmail.com>"]
+readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "0.110.0"
+pydantic = "1.10.15"
+uvicorn = "0.22.0"
+jsonpatch = "1.33"
+more-itertools = "10.2.0"
+kubernetes-dynamic = "0.1.2"
+kubernetes = "29.0.0"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=JWTAuth -v -rxXs"
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.2.2"
+pytest-cov = "4.0.0"
+ruff = "v0.0.260"
+coverage-badge = ">=1.1.0,<1.2.0"
+isort = "^5.13.2"
+black = "^24.4.2"
+autoflake = "^2.3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.autoflake]
+remove-all-unused-imports = true
+in-place = true
+expand-star-imports = true
+remove-unused-variables = true
+
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+skip-magic-trailing-comma = true
+preview = true
+target-version = ['py39']
+
+[tool.isort]
+profile = 'black'
+
+[tool.ruff]
+line-length = 88
+target-version = 'py312'
+fix = true
+
+[tool.flake8]
+max-line-length = 88
+
+[tool.ruff.lint]
+ignore = [
+  "COM812", "ISC001"
+]
+
+[tool.vulture]
+exclude = ['venv', 'pod_v3', 'frontend-ops', 'labelbox', 'compute_v2']
+paths = ['webapp']
+min_confidence = 60
+ignore_names = ["visit_*", "do_*"]
+sort_by_size = true
+
+[tool.coverage.run]
+omit = [
+    "terraform_keycloak_client/*",
+    "chart/*",
+    "src/tirefire.py",
+  ]
