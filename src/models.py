@@ -93,7 +93,8 @@ class V1AdmissionReviewRequestBody(BaseModel):
     uid: UUID
     # Name of the resource being modified
     name: str = None
-    # Namespace of the resource being modified, if the resource is namespaced (or is a Namespace object)
+    # Namespace of the resource being modified, if the resource
+    # is namespaced (or is a Namespace object)
     namespace: str = None
     # operation can be CREATE, UPDATE, DELETE, or CONNECT
     operation: WebhookRequestOperation
@@ -103,9 +104,12 @@ class V1AdmissionReviewRequestBody(BaseModel):
     # oldObject is the existing object.
     # It is null for CREATE and CONNECT operations.
     old_object: kd.models.V1Pod | None = Field(alias="oldObject", default=None)
-    # dryRun indicates the API request is running in dry run mode and will not be persisted.
-    # Webhooks with side effects should avoid actuating those side effects when dryRun is true.
-    # See http://k8s.io/docs/reference/using-api/api-concepts/#make-a-dry-run-request for more details.
+    # dryRun indicates the API request is running in dry run mode and
+    # will not be persisted.
+    # Webhooks with side effects should avoid actuating those side
+    # effects when dryRun is true.
+    # See http://k8s.io/docs/reference/using-api/api-concepts/#make-a-dry-run-request
+    # for more details.
     dry_run: bool = Field(alias="dryRun", default=False)
 
 
