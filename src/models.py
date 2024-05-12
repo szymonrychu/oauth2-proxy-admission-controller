@@ -41,15 +41,13 @@ class Config(BaseModel):
     patch_port_number: int = Field(alias="patch-port-number", default=None)
     patch_port_name: str = Field(alias="proxy-port-name", default=None)
     secret_name: str = Field(alias="secret-name", default="")
-    secret_namespace: str = Field(alias="secret-name", default="")
+    secret_namespace: str = Field(alias="secret-namespace", default="")
 
     def update(self, config: Self = None) -> Self:
         _config = config or Config()
-        this_raw = self.dict(
-            skip_defaults=True, exclude_defaults=True, exclude_unset=True
-        )
+        this_raw = self.dict(exclude_defaults=True, exclude_unset=True, by_alias=True)
         update_raw = _config.dict(
-            skip_defaults=True, exclude_defaults=True, exclude_unset=True
+            exclude_defaults=True, exclude_unset=True, by_alias=True
         )
         this_raw.update(update_raw)
         return Config.validate(this_raw)

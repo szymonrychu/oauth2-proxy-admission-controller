@@ -18,7 +18,7 @@ _default_secret_name = os.environ.get(DEFAULT_SECRET_NAME, None)
 _default_secret_namespace = os.environ.get(DEFAULT_SECRET_NAMESPACE, None)
 
 
-def _load_from_kubernetes(
+def load_from_kubernetes(
     secret_name: str = None,
     secret_namespace: str = None,
     kubernetes_client: kd.client.K8sClient = None,
@@ -33,7 +33,7 @@ def _load_from_kubernetes(
         return None
 
 
-def _load_from_annotations(pod: kd.models.V1Pod) -> Config:
+def load_from_annotations(pod: kd.models.V1Pod) -> Config:
     result = {}
     prefix_len = len(POD_ANNOTATIONS_PREFIX)
     for k, v in pod.metadata.annotations.items():
@@ -45,12 +45,12 @@ def _load_from_annotations(pod: kd.models.V1Pod) -> Config:
 def load_config(
     pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = None
 ) -> Optional[Config]:
-    annotations_config = _load_from_annotations(pod)
+    annotations_config = load_from_annotations(pod)
 
     config = Config()
 
     if _default_secret_name:
-        config_update = _load_from_kubernetes(
+        config_update = load_from_kubernetes(
             _default_secret_name, _default_secret_namespace, kubernetes_client
         )
         if config_update:
@@ -63,7 +63,7 @@ def load_config(
         logger.warning("Configuration default secret name not provided!")
 
     if annotations_config.secret_name:
-        config_update = _load_from_kubernetes(
+        config_update = load_from_kubernetes(
             annotations_config.secret_name,
             annotations_config.secret_namespace,
             kubernetes_client,
@@ -75,7 +75,8 @@ def load_config(
     else:
         logger.warning("Configuration secret name not provided!")
 
-    config.update(annotations_config)
+    config = config.update(annotations_config)
+    print(config)
 
     if config.all_required_fields_set:
         return config
