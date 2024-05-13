@@ -54,7 +54,10 @@ jobs:
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction
+        run: |
+          poetry config virtualenvs.in-project true --local
+          poetry config virtualenvs.create true --local
+          poetry install --no-interaction
         shell: bash
 
       - name: Linters
