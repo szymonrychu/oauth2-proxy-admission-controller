@@ -1,10 +1,13 @@
+import logging
 from copy import deepcopy
 
 import kubernetes_dynamic as kd
 from kubernetes.client.exceptions import ApiException
 
-from kubernetes_client import get_client
-from utils import b64dec_json, b64enc_json
+from oauth2_proxy_admission_controller.kubernetes_client import get_client
+from oauth2_proxy_admission_controller.utils import b64dec_json, b64enc_json
+
+logger = logging.getLogger(__name__)
 
 SERVICE_ANNOTATION_TYPE_KEY = "oauth2-proxy-admission/type"
 SERVICE_ANNOTATION_TYPE_VALUE_SECURE = "secure"
@@ -29,29 +32,18 @@ def update_services(
     insecure_service.spec.clusterIPs = None
     insecure_service.metadata.name = f"{service.metadata.name}-insecure"
     for sport in insecure_service.spec.ports:
-        if (
-            sport.targetPort == container_port.name
-            or sport.targetPort == container_port.containerPort
-        ):
+        if sport.targetPort == container_port.name or sport.targetPort == container_port.containerPort:
             sport.targetPort = f"{sport.name}-insecure"
             break
-    insecure_service.metadata.labels.update(
-        {
-            SERVICE_ANNOTATION_TYPE_KEY: SERVICE_ANNOTATION_TYPE_VALUE_INSECURE,
-        }
-    )
-    insecure_service.metadata.annotations.update(
-        {SERVICE_ANNOTATION_POD_LABELS_KEY: b64enc_json(pod.metadata.labels)}
-    )
+    insecure_service.metadata.labels.update({SERVICE_ANNOTATION_TYPE_KEY: SERVICE_ANNOTATION_TYPE_VALUE_INSECURE})
+    insecure_service.metadata.annotations.update({SERVICE_ANNOTATION_POD_LABELS_KEY: b64enc_json(pod.metadata.labels)})
     try:
         _client.services.create(service.dict())
     except ApiException:
         _client.services.replace(insecure_service)
 
 
-def revert_services(
-    pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = None
-):
+def revert_services(pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = None):
     _client = kubernetes_client or get_client()
     services = _client.services.find(
         pattern=".*",
@@ -61,9 +53,7 @@ def revert_services(
     insecure_service = None
     for service in services:
         try:
-            pod_labels_raw = service.metadata.annotations[
-                SERVICE_ANNOTATION_POD_LABELS_KEY
-            ]
+            pod_labels_raw = service.metadata.annotations[SERVICE_ANNOTATION_POD_LABELS_KEY]
             pod_labels = b64dec_json(pod_labels_raw)
             if pod.metadata.labels == pod_labels:
                 insecure_service = service
@@ -71,6 +61,4 @@ def revert_services(
             pass
 
     if insecure_service:
-        _client.services.delete(
-            insecure_service.metadata.name, insecure_service.metadata.namespace
-        )
+        _client.services.delete(insecure_service.metadata.name, insecure_service.metadata.namespace)

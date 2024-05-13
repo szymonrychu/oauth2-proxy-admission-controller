@@ -22,7 +22,7 @@ env:
 
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,30 +30,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
       - name: Set up Python 3.12.2
         uses: actions/setup-python@v4
         with:
           python-version: 3.12.2
 
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f tests-requirements.txt ]; then pip install -r tests-requirements.txt; fi
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction
+        shell: bash
 
-      - name: Lint with Ruff
+      - name: Linters
         run: |
-          pip install ruff
-          ruff check .
+          poetry lock --check
+          poetry run pre-commit run -a
 
-        continue-on-error: true
-      - name: Test with pytest
+      - name: Pytest
         run: |
-          coverage run -m pytest  -v -s
+          poetry run coverage run -m pytest
+          poetry run coverage report -m
 
-      - name: Generate Coverage Report
-        run: |
-          coverage report -m
+  build:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -67,7 +90,6 @@ jobs:
           registry: ghcr.io
           username: szymonrychu
           password: ${{ secrets.GHCR_TOKEN }}
-
 
       - name: Parse versions in commit and setup debs for tag
         id: prep

@@ -1,8 +1,12 @@
+import logging
 from enum import Enum
+from typing import List, Self
 from uuid import UUID
+
 import kubernetes_dynamic as kd
 from pydantic import BaseModel, Field
-from typing import Self, List
+
+logger = logging.getLogger(__name__)
 
 
 class Config(BaseModel):
@@ -18,25 +22,13 @@ class Config(BaseModel):
     proxy_cookie_name: str = Field(alias="proxy-cookie-name", default=None)
     proxy_cookie_domain: str = Field(alias="proxy-cookie-domain", default=None)
     proxy_cookie_secret: str = Field(alias="proxy-cookie-secret", default=None)
-    proxy_resources_requests_cpu: str = Field(
-        alias="proxy-resources-requests-cpu", default="100m"
-    )
-    proxy_resources_requests_memory: str = Field(
-        alias="proxy-resources-requests-memory", default="128Mi"
-    )
-    proxy_resources_limits_cpu: str = Field(
-        alias="proxy-resources-limits-cpu", default="200m"
-    )
-    proxy_resources_limits_memory: str = Field(
-        alias="proxy-resources-limits-memory", default="256Mi"
-    )
-    proxy_container_image: str = Field(
-        alias="proxy-container-image", default="quay.io/oauth2-proxy/oauth2-proxy"
-    )
+    proxy_resources_requests_cpu: str = Field(alias="proxy-resources-requests-cpu", default="100m")
+    proxy_resources_requests_memory: str = Field(alias="proxy-resources-requests-memory", default="128Mi")
+    proxy_resources_limits_cpu: str = Field(alias="proxy-resources-limits-cpu", default="200m")
+    proxy_resources_limits_memory: str = Field(alias="proxy-resources-limits-memory", default="256Mi")
+    proxy_container_image: str = Field(alias="proxy-container-image", default="quay.io/oauth2-proxy/oauth2-proxy")
     proxy_container_tag: str = Field(alias="proxy-container-tag", default="v7.5.1")
-    proxy_container_image_pull_policy: str = Field(
-        alias="proxy-container-image-pull-policy", default="IfNotPresent"
-    )
+    proxy_container_image_pull_policy: str = Field(alias="proxy-container-image-pull-policy", default="IfNotPresent")
     patch_container_name: str = Field(alias="patch-container-name", default=None)
     patch_port_number: int = Field(alias="patch-port-number", default=None)
     patch_port_name: str = Field(alias="proxy-port-name", default=None)
@@ -46,9 +38,7 @@ class Config(BaseModel):
     def update(self, config: Self = None) -> Self:
         _config = config or Config()
         this_raw = self.dict(exclude_defaults=True, exclude_unset=True, by_alias=True)
-        update_raw = _config.dict(
-            exclude_defaults=True, exclude_unset=True, by_alias=True
-        )
+        update_raw = _config.dict(exclude_defaults=True, exclude_unset=True, by_alias=True)
         this_raw.update(update_raw)
         return Config.validate(this_raw)
 
@@ -133,15 +123,8 @@ class V1AdmissionReviewResponse(kd.ResourceItem):
 
 
 def get_admission_resp_from_req(
-    req: V1AdmissionReviewRequest,
-    allowed: bool = True,
-    patch: str = None,
-    patch_type: str = None,
+    req: V1AdmissionReviewRequest, allowed: bool = True, patch: str = None, patch_type: str = None
 ) -> V1AdmissionReviewResponse:
-    response = V1AdmissionReviewResponseBody(
-        uid=req.request.uid, allowed=allowed, patch=patch, patch_type=patch_type
-    )
-    resp = V1AdmissionReviewResponse(
-        response=response, kind=req.kind, api_version=req.api_version
-    )
+    response = V1AdmissionReviewResponseBody(uid=req.request.uid, allowed=allowed, patch=patch, patch_type=patch_type)
+    resp = V1AdmissionReviewResponse(response=response, kind=req.kind, api_version=req.api_version)
     return resp

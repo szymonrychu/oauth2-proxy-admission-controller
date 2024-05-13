@@ -1,8 +1,12 @@
 import kubernetes_dynamic as kd
 from kubernetes.client.exceptions import ApiException
 
-from utils import b64enc
-from config import load_config, load_from_annotations, load_from_kubernetes
+from oauth2_proxy_admission_controller.config import (
+    load_config,
+    load_from_annotations,
+    load_from_kubernetes,
+)
+from oauth2_proxy_admission_controller.utils import b64enc
 
 
 class MockSecrets:
