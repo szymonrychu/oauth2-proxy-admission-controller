@@ -43,6 +43,8 @@ addopts = "-v -rxXs"
 testpaths = [
     "tests",
 ]
+log_cli = true
+log_cli_level = "INFO"
 
 [tool.autoflake]
 remove-all-unused-imports = true

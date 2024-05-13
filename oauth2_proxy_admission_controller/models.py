@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import List, Self
+from typing import List
 from uuid import UUID
 
 import kubernetes_dynamic as kd
@@ -32,15 +32,8 @@ class Config(BaseModel):
     patch_container_name: str = Field(alias="patch-container-name", default=None)
     patch_port_number: int = Field(alias="patch-port-number", default=None)
     patch_port_name: str = Field(alias="proxy-port-name", default=None)
-    secret_name: str = Field(alias="secret-name", default="")
-    secret_namespace: str = Field(alias="secret-namespace", default="")
-
-    def update(self, config: Self = None) -> Self:
-        _config = config or Config()
-        this_raw = self.dict(exclude_defaults=True, exclude_unset=True, by_alias=True)
-        update_raw = _config.dict(exclude_defaults=True, exclude_unset=True, by_alias=True)
-        this_raw.update(update_raw)
-        return Config.validate(this_raw)
+    secret_name: str = Field(alias="secret-name", default=None)
+    secret_namespace: str = Field(alias="secret-namespace", default=None)
 
     @property
     def missing_fields(self) -> List[str]:
@@ -128,3 +121,12 @@ def get_admission_resp_from_req(
     response = V1AdmissionReviewResponseBody(uid=req.request.uid, allowed=allowed, patch=patch, patch_type=patch_type)
     resp = V1AdmissionReviewResponse(response=response, kind=req.kind, api_version=req.api_version)
     return resp
+
+
+def merge_configs(*configs: Config) -> Config:
+    result_raw = {}
+    for config in configs:
+        for k, v in config.dict(by_alias=True, exclude_defaults=True, exclude_unset=True, exclude_none=True).items():
+            if v:
+                result_raw[k] = v
+    return Config.validate(result_raw)

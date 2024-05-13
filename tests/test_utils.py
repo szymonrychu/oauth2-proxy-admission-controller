@@ -1,9 +1,13 @@
+import logging
+
 from oauth2_proxy_admission_controller.utils import (
     b64dec,
     b64dec_json,
     b64enc,
     b64enc_json,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def test_b64enc():
