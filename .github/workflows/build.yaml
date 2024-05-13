@@ -30,7 +30,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/cache@v3
+      - name: Load cached pre-commit
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
