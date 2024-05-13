@@ -1,15 +1,16 @@
+import logging
 from typing import List
 
 import kubernetes_dynamic as kd
 
-from kubernetes_client import get_client
-from models import Config
+from oauth2_proxy_admission_controller.kubernetes_client import get_client
+from oauth2_proxy_admission_controller.models import Config
+
+logger = logging.getLogger(__name__)
 
 
 def find_pods_services(
-    pod: kd.models.V1Pod,
-    port: kd.models.V1ContainerPort,
-    kubernetes_client: kd.client.K8sClient = None,
+    pod: kd.models.V1Pod, port: kd.models.V1ContainerPort, kubernetes_client: kd.client.K8sClient = None
 ) -> List[kd.models.V1Service]:
     _client = kubernetes_client or get_client()
     labels = pod.metadata.labels
@@ -28,9 +29,7 @@ def find_pods_services(
                     _selector.append(f"{k}={v}")
                 _full_selector = ",".join(_selector)
                 services = _client.services.find(
-                    pattern=".*",
-                    namespace=pod.metadata.namespace,
-                    label_selector=_full_selector,
+                    pattern=".*", namespace=pod.metadata.namespace, label_selector=_full_selector
                 )
                 for service in services:
                     for sport in service.spec.ports:
@@ -51,9 +50,7 @@ def get_pod_container(pod: kd.models.V1Pod, config: Config) -> kd.models.V1Conta
     return container
 
 
-def get_container_port(
-    container: kd.models.V1Container, config: Config
-) -> kd.models.V1ContainerPort:
+def get_container_port(container: kd.models.V1Container, config: Config) -> kd.models.V1ContainerPort:
     port = None
     for p in container.ports:
         if not config.patch_port_name and not config.patch_port_number:
@@ -68,9 +65,7 @@ def get_container_port(
     return port
 
 
-def generate_proxy_container(
-    upstream_port_number: int, port_name: str, config: Config
-) -> kd.models.V1Container:
+def generate_proxy_container(upstream_port_number: int, port_name: str, config: Config) -> kd.models.V1Container:
     new_container = kd.models.V1Container()
     new_container.name = config.proxy_container_name
     new_container.image = f"{config.proxy_container_image}:{config.proxy_container_tag}"
@@ -96,29 +91,15 @@ def generate_proxy_container(
         }.items()
         if v
     ]
-    new_container.ports = [
-        kd.models.V1ContainerPort(containerPort=config.proxy_http_port, name=port_name)
-    ]
+    new_container.ports = [kd.models.V1ContainerPort(containerPort=config.proxy_http_port, name=port_name)]
     new_container.livenessProbe = kd.models.V1Probe(
-        failureThreshold=3,
-        periodSeconds=10,
-        successThreshold=1,
-        tcpSocket=kd.models.V1TCPSocketAction(port=port_name),
+        failureThreshold=3, periodSeconds=10, successThreshold=1, tcpSocket=kd.models.V1TCPSocketAction(port=port_name)
     )
     new_container.readinessProbe = kd.models.V1Probe(
-        failureThreshold=3,
-        periodSeconds=10,
-        successThreshold=1,
-        tcpSocket=kd.models.V1TCPSocketAction(port=port_name),
+        failureThreshold=3, periodSeconds=10, successThreshold=1, tcpSocket=kd.models.V1TCPSocketAction(port=port_name)
     )
     new_container.resources = kd.models.V1ResourceRequirements(
-        limits={
-            "cpu": config.proxy_resources_limits_cpu,
-            "memory": config.proxy_resources_limits_memory,
-        },
-        requests={
-            "cpu": config.proxy_resources_requests_cpu,
-            "memory": config.proxy_resources_requests_memory,
-        },
+        limits={"cpu": config.proxy_resources_limits_cpu, "memory": config.proxy_resources_limits_memory},
+        requests={"cpu": config.proxy_resources_requests_cpu, "memory": config.proxy_resources_requests_memory},
     )
     return new_container

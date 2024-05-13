@@ -1,5 +1,9 @@
+import logging
+
 import kubernetes_dynamic as kd
 from kubernetes import client, config
+
+logger = logging.getLogger(__name__)
 
 
 def get_client() -> kd.K8sClient:

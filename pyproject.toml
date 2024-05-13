@@ -1,0 +1,79 @@
+
+[tool.poetry]
+name = "oauth2_proxy_admission_controller"
+version = "0.0.1"
+description = ""
+authors = ["Szymon Richert <szymon.rychu@gmail.com>"]
+readme = "README.md"
+packages = [
+  {include = "oauth2_proxy_admission_controller"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = "^0.29.0"
+jsonpatch = "^1.33"
+more-itertools = "^10.2.0"
+kubernetes-dynamic = "^0.1.2"
+kubernetes = "^29.0.0"
+yarl = "^1.9.4"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pytest-cov = "^5.0.0"
+ruff = "^0.4.4"
+coverage-badge = "^1.1.1"
+isort = "^5.13.2"
+black = "^24.4.2"
+autoflake = "^2.3.1"
+vulture = "^2.11"
+poethepoet = "^0.26.1"
+pre-commit = "^3.7.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+app = "poetry run python oauth2_proxy_admission_controller/main.py"
+test = 'poetry run coverage run -m pytest'
+
+[tool.pytest.ini_options]
+addopts = "-v -rxXs"
+testpaths = [
+    "tests",
+]
+
+[tool.autoflake]
+remove-all-unused-imports = true
+in-place = true
+expand-star-imports = true
+remove-unused-variables = true
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = 'black'
+
+[tool.ruff]
+line-length = 120
+target-version = 'py311'
+fix = true
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.vulture]
+exclude = ['venv', 'pod_v3', 'frontend-ops', 'labelbox', 'compute_v2']
+paths = ['oauth2_proxy_admission_controller']
+min_confidence = 80
+ignore_names = ["visit_*", "do_*"]
+sort_by_size = true
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+skip_empty = true
