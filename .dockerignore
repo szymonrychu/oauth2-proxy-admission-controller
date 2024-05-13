@@ -2,3 +2,5 @@ chart
 .gitignore
 LICENCE
 README.md
+terraform_keycloak_client
+chart
