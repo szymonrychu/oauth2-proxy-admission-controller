@@ -8,7 +8,7 @@ module.exports = {
   "gitAuthor": "szymonrichert.pl bot <bot@szymonrichert.pl>",
   "onboarding": false,
   "platform": "github",
-  "repositories": ["szymonrychu/selfhosted-kubernetes-charts"],
+  "repositories": ["szymonrychu/oauth2-proxy-admission-controller"],
   "allowedPostUpgradeCommands": ["^.github.*"],
   "allowPostUpgradeCommandTemplating": true,
 };

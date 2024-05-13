@@ -7,8 +7,6 @@ on:
       - 'feature/**'
       - 'hotfix/**'
       - 'dependabot/**'
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
 
 env:
   GIT_SHA: ${{ github.sha }}
@@ -103,16 +101,9 @@ jobs:
             export LATEST_REPO_TAG="0.0.1"
           fi
           export SHORT_SHA=$(echo ${GIT_SHA:0:7})
-
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-              export APP_VERSION=${LATEST_REPO_TAG}
-              export CHART_VERSION=${LATEST_REPO_TAG}
-              export CONTAINER_VERSION=${LATEST_REPO_TAG}
-          else
-              export APP_VERSION=${LATEST_REPO_TAG}-${SHORT_SHA}
-              export CHART_VERSION=${LATEST_REPO_TAG}-$(git show -s --format=%ct HEAD)-${SHORT_SHA}
-              export CONTAINER_VERSION=${GIT_SHA:0:7}
-          fi
+          export APP_VERSION=${LATEST_REPO_TAG}-${SHORT_SHA}
+          export CHART_VERSION=${LATEST_REPO_TAG}-$(git show -s --format=%ct HEAD)-${SHORT_SHA}
+          export CONTAINER_VERSION=${GIT_SHA:0:7}
 
           echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
           echo "chart_version=${CHART_VERSION}" >> $GITHUB_OUTPUT
@@ -122,7 +113,6 @@ jobs:
 
 
       - name: Build new container for branch
-        if: github.ref_type == 'branch'
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5
         with:
           platforms: linux/amd64
@@ -130,17 +120,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep.outputs.container_version }}
             ghcr.io/${{ github.repository_owner }}/${{ env.CONTAINER_NAME }}:${{ steps.prep.outputs.short_sha }}
-
-      - name: Tag existing container for release
-        if: github.ref_type == 'tag'
-        run: |
-          set -e
-          docker pull ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }}
-          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.container_version }}
-          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.container_version }}
-
-          docker tag ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${{ steps.prep.outputs.short_sha }} ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
-          docker push ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:latest
 
       - name: Package and upload charts
         run: |
