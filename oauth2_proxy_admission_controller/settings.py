@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 from typing import Optional, Union
 
-from pydantic import AnyUrl, BaseSettings, IPvAnyAddress
+from pydantic import AnyUrl, BaseSettings, IPvAnyAddress, validator
 from yarl import URL
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     LOG_FORMAT: str = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     SSL_KEY_PATH: str = None
     SSL_CERT_PATH: str = None
+
+    @validator("PORT")
+    def validate_PORT(v):
+        return int(v) if isinstance(v, str) else v
 
     class Config:
         env_file = ".env"

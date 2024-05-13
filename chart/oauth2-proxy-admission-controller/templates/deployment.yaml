@@ -36,11 +36,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: PORT
-              VALUE: "443"
+              value: "443"
             - name: SSL_KEY_PATH
-              VALUE: "/certs/tls.key"
+              value: "/certs/tls.key"
             - name: SSL_CERT_PATH
-              VALUE: "/certs/tls.crt"
+              value: "/certs/tls.crt"
             - name: OAUTH2_PROXY_ADMISSION_SECRET_NAME
               valueFrom:
                 secretKeyRef:
