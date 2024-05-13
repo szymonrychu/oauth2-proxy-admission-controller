@@ -12,6 +12,8 @@ COPY pyproject.toml poetry.lock* /app/
 
 RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install ; else poetry install --without=dev ; fi"
 
+COPY oauth2_proxy_admission_controller /app/oauth2_proxy_admission_controller
+
 ENV PYTHONPATH=/app
 
 CMD ["poetry", "run", "python", "./oauth2_proxy_admission_controller/main.py"]
