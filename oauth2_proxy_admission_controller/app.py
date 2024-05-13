@@ -38,6 +38,7 @@ async def mutate(request: V1AdmissionReviewRequest) -> V1AdmissionReviewResponse
     response = get_admission_resp_from_req(request)
     pod = request.request.object
 
+    logger.info(f"Handling {pod.metadata.namespace}/{pod.metadata.name}")
     config = load_config(pod)
 
     if not config:

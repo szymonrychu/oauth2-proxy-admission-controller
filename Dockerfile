@@ -16,7 +16,7 @@ COPY oauth2_proxy_admission_controller /app/oauth2_proxy_admission_controller
 
 ENV PYTHONPATH=/app
 
-CMD ["poetry", "run", "python", "./oauth2_proxy_admission_controller/main.py"]
+CMD ["poetry", "run", "python", "oauth2_proxy_admission_controller/main.py"]
 
 
 

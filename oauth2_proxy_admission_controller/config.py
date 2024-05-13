@@ -51,6 +51,8 @@ def load_config(pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = N
         config_update = load_from_kubernetes(_default_secret_name, _default_secret_namespace, kubernetes_client)
         if config_update:
             config.update(config_update)
+            secret_namespace = _default_secret_namespace or "<current>"
+            logger.info(f"Loaded default configuration from {secret_namespace}/{_default_secret_name}")
         else:
             logger.warning("Default configuration secret name and namespace not provided!")
     else:
@@ -62,6 +64,8 @@ def load_config(pod: kd.models.V1Pod, kubernetes_client: kd.client.K8sClient = N
         )
         if config_update:
             config.update(config_update)
+            secret_namespace = annotations_config.secret_namespace or "<current>"
+            logger.info(f"Loaded default configuration from {secret_namespace}/{annotations_config.secret_name}")
         else:
             logger.warning("Configuration secret name and namespace not provided!")
     else:
