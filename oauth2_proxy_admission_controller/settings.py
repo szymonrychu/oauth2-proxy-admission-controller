@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     PORT: int = 8080
     LOG_LEVEL: LogLevel = LogLevel.DEBUG
     LOG_FORMAT: str = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    SSL_KEY_PATH: str = None
+    SSL_CERT_PATH: str = None
 
     class Config:
         env_file = ".env"
