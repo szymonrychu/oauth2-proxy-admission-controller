@@ -81,12 +81,13 @@ async def mutate(request: V1AdmissionReviewRequest) -> V1AdmissionReviewResponse
     elif container.startupProbe.tcpSocket.port and container.startupProbe.tcpSocket.port == port.name:
         container.startupProbe.tcpSocket.port = f"{port.name}-insecure"
 
+    update_services(service, port, pod)
+
     port.name = f"{port.name}-insecure"
     response.response.patch_type = "JSONPatch"
     patch = jsonpatch.make_patch(old_pod.dict(skip_defaults=True), pod.dict(skip_defaults=True)).to_string()
     response.response.patch = b64enc(patch)
 
-    update_services(service, port, pod)
     return response
 
 
