@@ -1,4 +1,4 @@
-FROM python:3.12.2-slim-bookworm as global_dependencies
+FROM python:3.12.3-slim-bookworm as global_dependencies
 
 ARG INSTALL_DEV=false
 
