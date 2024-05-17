@@ -26,14 +26,13 @@ service gets exposed without authentication/authorisation enforced properly.
 
 Here is a graphical representation of what happens:
 
-1. State before:
+State before:
 
 ![State Before](./docs/proxy-before-injection.svg)
-<img src="./docs/proxy-before-injection.svg">
-2. State after (green objects == added, yellow objects == modified):
+
+State after (green objects == added, yellow objects == modified):
 
 ![State Before](./docs/proxy-after-injection.svg)
-<img src="./docs/proxy-after-injection.svg">
 
 ## Installation
 
