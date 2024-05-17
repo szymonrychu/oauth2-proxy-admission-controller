@@ -24,6 +24,17 @@ goes through the `oauth2proxy` container.
 Because this happens inside Admission Controller, there is no point in time, where the underlying
 service gets exposed without authentication/authorisation enforced properly.
 
+Here is a graphical representation of what happens:
+
+1. State before:
+
+![State Before](./docs/proxy-before-injection.svg)
+<img src="./docs/proxy-before-injection.svg">
+2. State after (green objects == added, yellow objects == modified):
+
+![State Before](./docs/proxy-after-injection.svg)
+<img src="./docs/proxy-after-injection.svg">
+
 ## Installation
 
 ### Helm chart
