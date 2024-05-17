@@ -87,7 +87,7 @@ jobs:
               -a "${{ steps.prep.outputs.container_version }}"
 
       - name: Create GH Release
-        uses: notlmn/release-with-changelog@v3
+        uses: notlmn/release-with-changelog@779fd5e658f82e5b11b1c0a352a6838d3bd8f67f # v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           template: '{commits}'
