@@ -1,4 +1,4 @@
-FROM python:3.12.3-slim-bookworm@sha256:afc139a0a640942491ec481ad8dda10f2c5b753f5c969393b12480155fe15a63 as global_dependencies
+FROM python:3.12.4-slim-bookworm@sha256:2fba8e70a87bcc9f6edd20dda0a1d4adb32046d2acbca7361bc61da5a106a914 as global_dependencies
 
 ARG INSTALL_DEV=false
 
