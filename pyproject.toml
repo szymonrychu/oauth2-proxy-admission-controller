@@ -23,7 +23,7 @@ autoflake = "^2.3.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 pytest-cov = "^5.0.0"
-ruff = "^0.4.4"
+ruff = "^0.5.0"
 coverage-badge = "^1.1.1"
 isort = "^5.13.2"
 vulture = "^2.11"
