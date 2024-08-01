@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
-      - 'hotfix/**'
-      - 'dependabot/**'
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 env:
   GIT_SHA: ${{ github.sha }}
@@ -24,29 +28,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
 
       - name: Load cached pre-commit
-        uses: actions/cache@v3
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Set up Python 3.12.2
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5
         with:
           python-version: 3.12.2
 
       - name: Install Poetry
-        uses: snok/install-poetry@v1
+        uses: snok/install-poetry@93ada01c735cc8a383ce0ce2ae205a21c415379b # v1
         with:
           virtualenvs-in-project: true
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
@@ -76,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
 
@@ -86,7 +90,7 @@ jobs:
           git config --global user.email "${BOT_USER_EMAIL}"
 
       - name: Login to GHCR
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
@@ -113,7 +117,7 @@ jobs:
 
 
       - name: Build new container for branch
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5
+        uses: docker/build-push-action@5176d81f87c23d6fc96624dfdbcd9f3830bbe445 # v6
         with:
           platforms: linux/amd64
           push: true

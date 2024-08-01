@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
 
@@ -32,7 +32,7 @@ jobs:
           git config --global user.email "${BOT_USER_EMAIL}"
 
       - name: Login to GHCR
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
@@ -87,7 +87,7 @@ jobs:
               -a "${{ steps.prep.outputs.container_version }}"
 
       - name: Create GH Release
-        uses: notlmn/release-with-changelog@v3
+        uses: notlmn/release-with-changelog@779fd5e658f82e5b11b1c0a352a6838d3bd8f67f # v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           template: '{commits}'
