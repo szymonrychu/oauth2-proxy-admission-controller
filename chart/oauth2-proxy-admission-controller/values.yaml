@@ -52,12 +52,10 @@ admissionWebhooks:
 
   ## Provide selectors for your objects
   namespaceSelector: {}
-  objectSelector: {}
-    # matchExpressions:
-    #   - key: app.kubernetes.io/component
-    #     operator: In
-    #     values:
-    #       - componentName
+  objectSelector:
+    matchExpressions:
+      - key: oauth2-proxy-admission/secret-name
+        operator: Exists
 
   ## https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-operator/README.md#tls-certificate-requirement
   ## TLS Certificate Option 1: Use certManager to generate self-signed certificate.
