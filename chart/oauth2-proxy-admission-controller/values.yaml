@@ -52,7 +52,7 @@ admissionWebhooks:
 
   ## Provide selectors for your objects
   namespaceSelector: {}
-  objectSelector: {}
+  objectSelector:
     matchExpressions:
       - key: oauth2-proxy-admission/secret-name
         operator: Exists

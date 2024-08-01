@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
-      - 'hotfix/**'
-      - 'dependabot/**'
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 env:
   GIT_SHA: ${{ github.sha }}
