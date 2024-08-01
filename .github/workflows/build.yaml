@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
-      - 'hotfix/**'
-      - 'dependabot/**'
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 env:
   GIT_SHA: ${{ github.sha }}
@@ -35,7 +39,7 @@ jobs:
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Set up Python 3.12.2
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5
         with:
           python-version: 3.12.2
 
@@ -86,7 +90,7 @@ jobs:
           git config --global user.email "${BOT_USER_EMAIL}"
 
       - name: Login to GHCR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
@@ -113,7 +117,7 @@ jobs:
 
 
       - name: Build new container for branch
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        uses: docker/build-push-action@5176d81f87c23d6fc96624dfdbcd9f3830bbe445 # v6
         with:
           platforms: linux/amd64
           push: true
