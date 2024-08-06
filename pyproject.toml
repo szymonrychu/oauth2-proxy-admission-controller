@@ -27,7 +27,7 @@ ruff = "^0.4.4"
 coverage-badge = "^1.1.1"
 isort = "^5.13.2"
 vulture = "^2.11"
-poethepoet = "^0.26.1"
+poethepoet = "^0.27.0"
 pre-commit = "^3.7.1"
 
 [build-system]
