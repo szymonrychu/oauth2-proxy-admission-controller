@@ -16,7 +16,7 @@ uvicorn = "^0.29.0"
 jsonpatch = "^1.33"
 more-itertools = "^10.2.0"
 kubernetes-dynamic = "^0.1.2"
-kubernetes = "^29.0.0"
+kubernetes = "^31.0.0"
 yarl = "^1.9.4"
 autoflake = "^2.3.1"
 
