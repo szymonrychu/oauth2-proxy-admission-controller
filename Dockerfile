@@ -8,7 +8,7 @@ WORKDIR /app
 
 FROM global_dependencies as dependencies
 
-COPY pyproject.toml poetry.lock* /app/
+COPY pyproject.toml poetry.lock* README.md /app/
 
 RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install ; else poetry install --without=dev ; fi"
 
