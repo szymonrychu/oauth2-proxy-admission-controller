@@ -2,13 +2,10 @@
   "dryRun": null,
   "extends": ["config:recommended", ":rebaseStalePrs"],
   "dependencyDashboard": false,
-  "rebaseWhen": "conflicted",
+  "rebaseWhen": "behind-base-branch",
   "suppressNotifications": ["prIgnoreNotification"],
-  "username": "szymonrichert.pl bot",
   "gitAuthor": "szymonrichert.pl bot <bot@szymonrichert.pl>",
-  "onboarding": false,
   "platform": "github",
-  "repositories": ["szymonrychu/oauth2-proxy-admission-controller"],
   "customManagers": [
     {
       "customType": "regex",
