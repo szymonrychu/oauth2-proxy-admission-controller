@@ -13,7 +13,7 @@ jobs:
         with:
           token: ${{ secrets.SZYMONRYCHU_BOT_TOKEN }}
       - name: Renovate
-        uses: renovatebot/github-action@76d49712364696a06b60e8647df46b288fff0ddc # v40.2.4
+        uses: renovatebot/github-action@aec779d4f7845f8431ddf403cf9659d4702ddde0 # v43.0.18
         with:
           configurationFile: .github/renovate-config.js
           token: ${{ secrets.SZYMONRYCHU_BOT_TOKEN }}
