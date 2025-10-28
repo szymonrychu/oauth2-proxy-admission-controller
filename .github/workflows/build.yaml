@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
 
       - name: Load cached pre-commit
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+        uses: actions/cache@b7a00a3203cfa62623760990f5171f9b4a2ab1a7
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -50,7 +50,7 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+        uses: actions/cache@b7a00a3203cfa62623760990f5171f9b4a2ab1a7
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
