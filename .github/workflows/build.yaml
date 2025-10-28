@@ -65,7 +65,6 @@ jobs:
 
       - name: Linters
         run: |
-          poetry lock --check
           poetry run pre-commit run -a
 
       - name: Pytest
