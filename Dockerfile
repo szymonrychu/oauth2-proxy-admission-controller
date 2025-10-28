@@ -1,4 +1,4 @@
-FROM python:3.12.2-slim-bookworm as global_dependencies
+FROM python:3.12.2-slim-bookworm AS global_dependencies
 
 ARG INSTALL_DEV=false
 
@@ -6,9 +6,11 @@ RUN pip install poetry
 
 WORKDIR /app
 
-FROM global_dependencies as dependencies
+FROM global_dependencies AS dependencies
 
-COPY pyproject.toml poetry.lock* README.md oauth2_proxy_admission_controller  /app/
+COPY README.md pyproject.toml poetry.lock* /app/
+
+COPY oauth2_proxy_admission_controller /app/oauth2_proxy_admission_controller
 
 RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install ; else poetry install --without=dev ; fi"
 
