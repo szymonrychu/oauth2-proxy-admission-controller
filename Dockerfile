@@ -8,11 +8,9 @@ WORKDIR /app
 
 FROM global_dependencies as dependencies
 
-COPY pyproject.toml poetry.lock* README.md /app/
+COPY pyproject.toml poetry.lock* README.md oauth2_proxy_admission_controller  /app/
 
 RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install ; else poetry install --without=dev ; fi"
-
-COPY oauth2_proxy_admission_controller /app/oauth2_proxy_admission_controller
 
 ENV PYTHONPATH=/app
 
